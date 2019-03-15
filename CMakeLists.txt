@@ -8,4 +8,4 @@ file(GLOB SOURCES "src/*.cpp")
 
 add_executable(search_engine ${SOURCES})
 
-target_compile_options(search_engine PUBLIC -O3 -std=c++11 -Wall -Werror)
+target_compile_options(search_engine PUBLIC -O3 -std=c++14 -Wall -Werror)
