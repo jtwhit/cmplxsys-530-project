@@ -4,10 +4,12 @@
 
 class WebPage {
 public:
-    WebPage(int max_info_int, int title_length, int page_length);
-    bool operator<(const WebPage &other);
+    WebPage(int page_id, int max_info_int, int title_length, int page_length);
+
+    const std::vector<int>& get_data() const;
+    bool operator<(const WebPage &other) const;
 
 private:
-    int topic;
+    int id, topic;
     std::vector<int> data, title;
 };
