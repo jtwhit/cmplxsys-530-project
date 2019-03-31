@@ -10,8 +10,9 @@ class WebPage:
 
 class ActionData:
 
-    def __init__(self, page):
+    def __init__(self, page, info_found):
         self.page = page
+        self.info_found = info_found
 
 
 class SearchEngine:
@@ -25,7 +26,8 @@ class SearchEngine:
 
         for action_query, action_data in self.action_data.items():
             for data in action_data:
-                scores[data.page] += 1 / (abs(query - action_query) + 1)
+                distance_multiplier = 1 / (abs(query - action_query) + 1)
+                scores[data.page] += (1 + data.info_found) * distance_multiplier
 
         self.pages.sort(key=lambda page: scores[page], reverse=True)
 
@@ -41,19 +43,19 @@ class SearchEngine:
 class User:
 
     def __init__(self, max_info_int, info_length, satisfy_pct):
-        self.topic = np.rint(np.random.uniform(0, max_info_int))
-        self.info = np.rint(np.random.normal(self.topic, 10, info_length))
+        topic = np.rint(np.random.uniform(0, max_info_int))
+        self.info = np.rint(np.random.normal(topic, 10, info_length))
         self.info_length = info_length
         self.satisfy_pct = satisfy_pct
         self.read_pages = set()
 
     def generate_query(self):
-        return self.topic
+        return np.mean(self.info)
     
     def is_satisfied(self):
         return (self.info.size / self.info_length) < (1 - self.satisfy_pct)
 
-    def choose_page(self, pages):
+    def choose_page(self, query, pages):
         best_page = None
         max_score = 0
         for idx, page in enumerate(pages):
@@ -63,7 +65,7 @@ class User:
             if -(idx + 1) < max_score and best_page is not None:
                 break
 
-            topic_score = -abs(self.topic - page.topic)
+            topic_score = -abs(query - page.topic)
             page_score = (topic_score - 1) * (idx + 1)
 
             if page_score > max_score or best_page is None:
@@ -78,7 +80,7 @@ class User:
     def read_page(self, page):
         _, info_indices, _ = np.intersect1d(self.info, page.data, return_indices=True)
         self.info = np.delete(self.info, info_indices)
-        return ActionData(page)
+        return ActionData(page, info_indices.size)
 
 
 def iterate(search_engine):
@@ -89,7 +91,7 @@ def iterate(search_engine):
     while not user.is_satisfied():
         query = user.generate_query()
         ranked_pages = search_engine.rank_pages(query)
-        page = user.choose_page(ranked_pages)
+        page = user.choose_page(query, ranked_pages)
         data = user.read_page(page)
         search_engine.record_action(query, data)
         num_read += 1
