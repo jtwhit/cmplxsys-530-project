@@ -19,34 +19,31 @@ class ActionData:
 class SearchEngine:
 
     def __init__(self, num_pages, max_info_int, page_length):
-        self.pages = {WebPage(max_info_int, page_length) for _ in range(num_pages)}
+        self.ranked_pages = []
+        self.unranked_pages = {WebPage(max_info_int, page_length) for _ in range(num_pages)}
         self.action_data = {}
 
     def rank_pages(self, query):
-        scores = {}
-        scored_pages = set()
+        scores = {page:0 for page in self.ranked_pages}
 
         for action_query, action_data in self.action_data.items():
             for data in action_data:
-                if data.page not in scored_pages:
-                    scores[data.page] = 0
-                    scored_pages.add(data.page)
-
                 distance_multiplier = 1 / (abs(query - action_query) + 1)
                 scores[data.page] += (1 + data.info_found) * distance_multiplier
 
-        ranked_pages = list(scored_pages)
-        ranked_pages.sort(key=lambda page: scores[page], reverse=True)
+        self.ranked_pages.sort(key=lambda page: scores[page], reverse=True)
 
-        unranked_pages = self.pages - scored_pages
-
-        return ranked_pages, unranked_pages
+        return self.ranked_pages, self.unranked_pages
 
     def record_action(self, query, data):
         if query in self.action_data:
             self.action_data[query].append(data)
         else:
             self.action_data[query] = [data]
+        
+        if data.page not in self.ranked_pages:
+            self.ranked_pages.append(data.page)
+            self.unranked_pages.remove(data.page)
 
 
 class User:
@@ -112,10 +109,10 @@ def iterate(search_engine):
 
 def main():
     print('Creating web pages...')
-    search_engine = SearchEngine(1000000, 10000, 100)
+    search_engine = SearchEngine(100000, 10000, 100)
 
     nums_read = []
-    for i in range(10):
+    for i in range(1000):
         print('\rIteration %d' % i, end='')
         num_read = iterate(search_engine)
         nums_read.append(num_read)
