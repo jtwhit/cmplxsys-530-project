@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot
+from itertools import chain
 
 class WebPage:
 
@@ -18,20 +19,28 @@ class ActionData:
 class SearchEngine:
 
     def __init__(self, num_pages, max_info_int, page_length):
-        self.pages = [WebPage(max_info_int, page_length) for _ in range(num_pages)]
+        self.pages = {WebPage(max_info_int, page_length) for _ in range(num_pages)}
         self.action_data = {}
 
     def rank_pages(self, query):
-        scores = {page:0 for page in self.pages}
+        scores = {}
+        scored_pages = set()
 
         for action_query, action_data in self.action_data.items():
             for data in action_data:
+                if data.page not in scored_pages:
+                    scores[data.page] = 0
+                    scored_pages.add(data.page)
+
                 distance_multiplier = 1 / (abs(query - action_query) + 1)
                 scores[data.page] += (1 + data.info_found) * distance_multiplier
 
-        self.pages.sort(key=lambda page: scores[page], reverse=True)
+        ranked_pages = list(scored_pages)
+        ranked_pages.sort(key=lambda page: scores[page], reverse=True)
 
-        return self.pages
+        unranked_pages = self.pages - scored_pages
+
+        return ranked_pages, unranked_pages
 
     def record_action(self, query, data):
         if query in self.action_data:
@@ -51,14 +60,16 @@ class User:
 
     def generate_query(self):
         return np.mean(self.info)
-    
+
     def is_satisfied(self):
         return (self.info.size / self.info_length) < (1 - self.satisfy_pct)
 
-    def choose_page(self, query, pages):
+    def choose_page(self, query, ranked_pages, unranked_pages):
+        all_pages = chain(ranked_pages, unranked_pages)
+
         best_page = None
         max_score = 0
-        for idx, page in enumerate(pages):
+        for idx, page in enumerate(all_pages):
             if page in self.read_pages:
                 continue
 
@@ -87,27 +98,32 @@ def iterate(search_engine):
     user = User(10000, 50, 0.95)
 
     num_read = 0
-    
+
     while not user.is_satisfied():
         query = user.generate_query()
-        ranked_pages = search_engine.rank_pages(query)
-        page = user.choose_page(query, ranked_pages)
+        ranked_pages, unranked_pages = search_engine.rank_pages(query)
+        page = user.choose_page(query, ranked_pages, unranked_pages)
         data = user.read_page(page)
         search_engine.record_action(query, data)
         num_read += 1
-    
+
     return num_read
 
 
 def main():
     print('Creating web pages...')
-    search_engine = SearchEngine(100000, 10000, 100)
+    search_engine = SearchEngine(1000000, 10000, 100)
 
     nums_read = []
-    for i in range(1000):
-        print('Iteration %d' % i)
+    for i in range(10):
+        print('\rIteration %d' % i, end='')
         num_read = iterate(search_engine)
         nums_read.append(num_read)
+    print('\nDone.')
+
+    with open('output.txt', 'w') as out:
+        for num in nums_read:
+            out.write(str(num) + '\n')
 
     moving_avg = np.convolve(nums_read, np.ones((50,))/50, mode='valid')
 
