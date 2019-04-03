@@ -20,7 +20,7 @@ class SearchEngine:
 
     def __init__(self, num_pages, max_info_int, page_length):
         self.ranked_pages = []
-        self.unranked_pages = {WebPage(max_info_int, page_length) for _ in range(num_pages)}
+        self.unranked_pages = [WebPage(max_info_int, page_length) for _ in range(num_pages)]
         self.action_data = {}
 
     def rank_pages(self, query):
@@ -92,14 +92,24 @@ class User:
 
 
 def iterate(search_engine):
-    user = User(10000, 50, 0.95)
+    user = User(50000, 50, 0.95)
 
     num_read = 0
 
+    query = None
+    ranked_pages = None
+    unranked_pages = None
+
     while not user.is_satisfied():
-        query = user.generate_query()
-        ranked_pages, unranked_pages = search_engine.rank_pages(query)
+        new_query = user.generate_query()
+        if new_query != query:
+            query = new_query
+            ranked_pages, unranked_pages = search_engine.rank_pages(query)
+
         page = user.choose_page(query, ranked_pages, unranked_pages)
+        if page is None:
+            break
+
         data = user.read_page(page)
         search_engine.record_action(query, data)
         num_read += 1
@@ -109,10 +119,10 @@ def iterate(search_engine):
 
 def main():
     print('Creating web pages...')
-    search_engine = SearchEngine(100000, 10000, 100)
+    search_engine = SearchEngine(1000000, 50000, 100)
 
     nums_read = []
-    for i in range(1000):
+    for i in range(300):
         print('\rIteration %d' % i, end='')
         num_read = iterate(search_engine)
         nums_read.append(num_read)
@@ -121,12 +131,6 @@ def main():
     with open('output.txt', 'w') as out:
         for num in nums_read:
             out.write(str(num) + '\n')
-
-    moving_avg = np.convolve(nums_read, np.ones((50,))/50, mode='valid')
-
-    pyplot.plot(nums_read)
-    pyplot.plot(moving_avg)
-    pyplot.show()
 
 
 if __name__ == '__main__':
