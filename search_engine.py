@@ -2,6 +2,10 @@ import numpy as np
 from matplotlib import pyplot
 from itertools import chain
 
+
+default_params = (1000, 100000, 10000, 100, 10, (1/3, 1/3, 1/3), 50, 10, 0.95, 20)
+
+
 class WebPage:
 
     def __init__(self, max_info_int, page_length):
@@ -148,7 +152,6 @@ def run_simulation(num_iterations, num_pages, max_info_int, page_length, page_st
 
 
 def sweep_parameter(name, param_idx, params):
-    default_params = (5000, 100000, 10000, 100, 10, (1/3, 1/3, 1/3), 50, 10, 0.95, 20)
     num_runs = 10
     last_n = 100
 
@@ -190,7 +193,14 @@ def sweep_weights():
 
 
 def main():
-    sweep_weights()
+    max_idxs, num_reads = run_simulation(*default_params)
+
+    max_idxs_avg = np.convolve(max_idxs, np.ones((50,))/50, mode='valid')
+    num_reads_avg = np.convolve(num_reads, np.ones((50,))/50, mode='valid')
+    pyplot.plot(max_idxs_avg)
+    pyplot.figure()
+    pyplot.plot(num_reads_avg)
+    pyplot.show()
 
 
 if __name__ == '__main__':
