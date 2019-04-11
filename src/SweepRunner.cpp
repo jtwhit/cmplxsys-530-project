@@ -6,41 +6,35 @@
 
 using namespace std;
 
-string weight_print_string(Weights weights) {
-    return to_string(weights.page_click) + "," + to_string(weights.topic_similarity) + "," + to_string(weights.info_found);
-}
+void run_sweep(const string &name, SimParams params) {
+    vector<SimResult> run_results = simulate(params);
 
-string param_print_string(SimParams params) {
-    return "[" + to_string(params.num_users) + " " +
-                 to_string(params.num_pages) + " " +
-                 to_string(params.max_info_int) + " " +
-                 to_string(params.page_length) + " " +
-                 to_string(params.page_std_dev) + " " +
-                 weight_print_string(params.weights) + " " +
-                 to_string(params.user_length) + " " +
-                 to_string(params.user_std_dev) + " " +
-                 to_string(params.user_sat_pct) + "]";
-}
-
-void run_sweep(SweepRunner::Sweep sweep) {
-    for (SimParams params : sweep.params) {
-        vector<SimResult> run_results = simulate(params, true);
-
-        ofstream output(sweep.name + "_" + param_print_string(params) + ".txt");
-        for (SimResult result : run_results) {
-            output << result.list_depth << ", " << result.pages_read << "\n";
-        }
+    ofstream output("outputs/" + name + ".txt");
+    for (SimResult result : run_results) {
+        output << result.list_depth << ", " << result.pages_read << "\n";
     }
 }
 
-void SweepRunner::queue_sweep(const std::string name, std::vector<SimParams> params) {
+void SweepRunner::queue_sweep(const string &name) {
+    SimParams params;
+    ifstream input("params/" + name + ".txt");
+    input >> params.num_users;
+    input >> params.num_pages;
+    input >> params.max_info_int;
+    input >> params.page_length;
+    input >> params.page_std_dev;
+    input >> params.weights.page_click >> params.weights.topic_similarity >> params.weights.info_found;
+    input >> params.user_length;
+    input >> params.user_std_dev;
+    input >> params.user_sat_pct;
+
     lock_guard<mutex> queue_lock(queue_mutex);
     sweeps.push({name, params});
 }
 
 void SweepRunner::run() {
     vector<thread> threads;
-    for (size_t i = 0; i < thread::hardware_concurrency(); i++) {}
+    for (size_t i = 0; i < thread::hardware_concurrency(); i++)
         threads.emplace_back(&SweepRunner::run_thread, this);
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
@@ -48,14 +42,14 @@ void SweepRunner::run() {
 
 void SweepRunner::run_thread() {
     while (!sweeps_empty()) {
-        Sweep sweep = pop_sweep();
-        run_sweep(sweep);
+        pair<string, SimParams> sweep = pop_sweep();
+        run_sweep(sweep.first, sweep.second);
     }
 }
 
-SweepRunner::Sweep SweepRunner::pop_sweep() {
+pair<string, SimParams> SweepRunner::pop_sweep() {
     lock_guard<mutex> queue_lock(queue_mutex);
-    Sweep sweep = sweeps.front();
+    pair<string, SimParams> sweep = sweeps.front();
     sweeps.pop();
     return sweep;
 }
