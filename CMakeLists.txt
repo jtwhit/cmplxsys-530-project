@@ -10,6 +10,6 @@ find_package(Threads)
 
 add_executable(search_engine ${SOURCES})
 
-target_link_libraries(search_engine ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(search_engine ${CMAKE_THREAD_LIBS_INIT} -lstdc++fs)
 
-target_compile_options(search_engine PUBLIC -O3 -std=c++14 -Wall -Werror)
+target_compile_options(search_engine PUBLIC -O3 -std=c++17 -Wall -Werror)

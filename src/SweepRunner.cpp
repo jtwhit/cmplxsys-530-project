@@ -4,13 +4,15 @@
 #include <algorithm>
 #include <iostream>
 #include <functional>
+#include <experimental/filesystem>
 
 using namespace std;
+using namespace std::experimental::filesystem;
 
 void run_sweep(const string &name, SimParams params) {
     vector<SimResult> run_results = simulate(params);
 
-    ofstream output("outputs/" + name + ".txt");
+    ofstream output("outputs/" + name);
     for (SimResult result : run_results) {
         output << result.list_depth << ", " << result.pages_read << "\n";
     }
@@ -18,7 +20,7 @@ void run_sweep(const string &name, SimParams params) {
 
 void SweepRunner::queue_sweep(const string &name) {
     SimParams params;
-    ifstream input("params/" + name + ".txt");
+    ifstream input("params/" + name);
     input >> params.num_users;
     input >> params.num_pages;
     input >> params.max_info_int;
@@ -34,6 +36,9 @@ void SweepRunner::queue_sweep(const string &name) {
 }
 
 void SweepRunner::run() {
+    remove_all("outputs");
+    create_directory("outputs");
+
     vector<thread> threads;
     for (size_t i = 0; i < thread::hardware_concurrency(); i++)
         threads.emplace_back(&SweepRunner::run_thread, this);

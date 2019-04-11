@@ -1,19 +1,16 @@
 #include "simulate.hpp"
 #include "SweepRunner.hpp"
 #include <iostream>
+#include <experimental/filesystem>
 
 using namespace std;
+using namespace std::experimental::filesystem;
 
 void run_parameter_sweep() {
     SweepRunner sweep_runner;
 
-    sweep_runner.queue_sweep("num_users_10");
-    sweep_runner.queue_sweep("num_users_30");
-    sweep_runner.queue_sweep("num_users_100");
-    sweep_runner.queue_sweep("num_users_300");
-    sweep_runner.queue_sweep("num_users_1000");
-    sweep_runner.queue_sweep("num_users_3000");
-    sweep_runner.queue_sweep("num_users_10000");
+    for (const path &p : directory_iterator("params"))
+        sweep_runner.queue_sweep(p.filename());
 
     sweep_runner.run();
 }
