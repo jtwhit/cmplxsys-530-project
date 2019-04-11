@@ -3,6 +3,7 @@
 #include <thread>
 #include <algorithm>
 #include <iostream>
+#include <functional>
 
 using namespace std;
 
