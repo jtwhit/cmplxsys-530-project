@@ -1,2 +1,7 @@
 .vscode/
 outputs/
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+search_engine
