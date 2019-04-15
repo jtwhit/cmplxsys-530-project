@@ -1,18 +1,53 @@
 #include "simulate.hpp"
-#include "SweepRunner.hpp"
 #include <iostream>
+#include <thread>
+#include <fstream>
+#include <algorithm>
+#include <functional>
 #include <experimental/filesystem>
 
 using namespace std;
 using namespace std::experimental::filesystem;
 
+SimParams read_params(path param_path) {
+    SimParams params;
+
+    ifstream input(param_path);
+    input >> params.num_users;
+    input >> params.num_pages;
+    input >> params.max_info_int;
+    input >> params.page_length;
+    input >> params.page_std_dev;
+    input >> params.weights.page_click >> params.weights.info_found >> params.weights.topic_similarity;
+    input >> params.user_length;
+    input >> params.user_std_dev;
+    input >> params.user_sat_pct;
+
+    return params;
+}
+
+void run_sim(path param_path) {
+    path output_path("outputs");
+    output_path /= param_path.filename();
+    if (exists(output_path))
+        return;
+
+    SimParams params = read_params(param_path);
+    vector<SimResult> run_results = simulate(params);
+
+    ofstream output(output_path);
+    for (SimResult result : run_results)
+        output << result.list_depth << ", " << result.pages_read << "\n";
+}
+
 void run_parameter_sweep() {
-    SweepRunner sweep_runner;
+    create_directory("outputs");
 
-    for (const path &p : directory_iterator("params"))
-        sweep_runner.queue_sweep(p.filename());
+    vector<thread> threads;
+    for (path p : directory_iterator("params"))
+        threads.emplace_back(run_sim, p);
 
-    sweep_runner.run();
+    for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }
 
 int main() {
