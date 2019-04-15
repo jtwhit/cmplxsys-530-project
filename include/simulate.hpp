@@ -15,17 +15,6 @@ struct SimParams {
     double user_sat_pct;
 };
 
-const SimParams DEFAULT_PARAMS =
-    { 3000,
-      100000,
-      10000,
-      100,
-      80,
-      { 1.0/3.0, 1.0/3.0, 1.0/3.0 },
-      50,
-      10,
-      0.95 };
-
 struct SimResult {
     int list_depth, pages_read;
 };

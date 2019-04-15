@@ -1,5 +1,5 @@
 #include "simulate.hpp"
-#include <iostream>
+#include "distribution.hpp"
 #include <thread>
 #include <fstream>
 #include <algorithm>
