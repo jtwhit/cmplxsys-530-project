@@ -26,14 +26,14 @@ SimParams read_params(path param_path) {
     return params;
 }
 
-void run_sim(path param_path) {
+void run_sim(path param_path, bool print = true) {
     path output_path("outputs");
     output_path /= param_path.filename();
     if (exists(output_path))
         return;
 
     SimParams params = read_params(param_path);
-    vector<SimResult> run_results = simulate(params);
+    vector<SimResult> run_results = simulate(params, print);
 
     ofstream output(output_path);
     for (SimResult result : run_results)
@@ -45,7 +45,7 @@ void run_parameter_sweep() {
 
     vector<thread> threads;
     for (path p : directory_iterator("params"))
-        threads.emplace_back(run_sim, p);
+        threads.emplace_back(run_sim, p, false);
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }

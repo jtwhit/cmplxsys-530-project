@@ -1,22 +1,12 @@
 #include "WebPage.hpp"
-#include <random>
-#include <iostream>
+#include "distribution.hpp"
+#include <tuple>
 
 using namespace std;
 
 WebPage::WebPage(int id_, int max_info_int, int page_length, double page_std_dev) :
     id(id_) {
-    random_device rd;
-    default_random_engine random_gen(rd());
-
-    uniform_int_distribution<> uniform(0, max_info_int);
-    topic = uniform(random_gen);
-
-    normal_distribution<> normal(topic, page_std_dev);
-    while (static_cast<int>(data.size()) < page_length) {
-        int info = static_cast<int>(round(normal(random_gen)));
-        data.insert(info);
-    }
+    tie(topic, data) = generate_info(0, max_info_int - 1, page_length, page_std_dev);
 }
 
 int WebPage::get_id() const {

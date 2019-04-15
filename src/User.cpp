@@ -1,24 +1,16 @@
 #include "User.hpp"
+#include "distribution.hpp"
 #include <cmath>
 #include <algorithm>
-#include <random>
+#include <tuple>
+#include <numeric>
 
 using namespace std;
 
 User::User(int max_info_int, int info_length, double info_std_dev, double sat_pct) :
     satisfied_pct(sat_pct),
     original_info_length(info_length) {
-    random_device rd;
-    default_random_engine random_gen(rd());
-
-    uniform_int_distribution<> uniform(0, max_info_int);
-    topic = uniform(random_gen);
-
-    normal_distribution<> normal(topic, info_std_dev);
-    while (static_cast<int>(search_info.size()) < info_length) {
-        int info = static_cast<int>(round(normal(random_gen)));
-        search_info.insert(info);
-    }
+    tie(topic, search_info) = generate_info(0, max_info_int - 1, info_length, info_std_dev);
 }
 
 ActionData User::read_page(double query, const WebPage &page) {
