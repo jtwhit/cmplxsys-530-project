@@ -26,7 +26,7 @@ void SweepRunner::queue_sweep(const string &name) {
     input >> params.max_info_int;
     input >> params.page_length;
     input >> params.page_std_dev;
-    input >> params.weights.page_click >> params.weights.topic_similarity >> params.weights.info_found;
+    input >> params.weights.page_click >> params.weights.info_found >> params.weights.topic_similarity;
     input >> params.user_length;
     input >> params.user_std_dev;
     input >> params.user_sat_pct;
