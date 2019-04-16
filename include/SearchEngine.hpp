@@ -14,7 +14,7 @@ struct ActionData {
 
 class SearchEngine {
 public:
-    SearchEngine(int num_pages, int max_info_int, int page_length, double page_std_dev, Weights weights);
+    SearchEngine(int num_pages, int max_info_int_, int page_length_, double page_std_dev, Weights weights_);
 
     void rank_pages(double query);
     void record_action(ActionData data);

@@ -1,11 +1,10 @@
 #include "distribution.hpp"
-#include <random>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <random>
 
 using namespace std;
-
 pair<int, set<int>> generate_info(int info_min, int info_max, int length, double std_dev) {
     random_device rd;
     default_random_engine random_gen(rd());
@@ -15,7 +14,7 @@ pair<int, set<int>> generate_info(int info_min, int info_max, int length, double
 
     double max_distance = sqrt(-2*pow(std_dev,2)*log(numeric_limits<double>::min()));
 
-    int norm_min = static_cast<int>(floor(topic - max_distance));
+int norm_min = static_cast<int>(floor(topic - max_distance));
     norm_min = max(norm_min, info_min);
 
     int norm_max = static_cast<int>(ceil(topic + max_distance));

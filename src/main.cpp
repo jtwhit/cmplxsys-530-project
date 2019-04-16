@@ -1,9 +1,9 @@
 #include "simulate.hpp"
 #include "distribution.hpp"
-#include <thread>
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 #include <functional>
+#include <thread>
 #include <experimental/filesystem>
 
 using namespace std;
@@ -29,23 +29,26 @@ SimParams read_params(path param_path) {
 void run_sim(path param_path, bool print = true) {
     path output_path("outputs");
     output_path /= param_path.filename();
-    if (exists(output_path))
+    if (exists(output_path)) {
         return;
+    }
 
     SimParams params = read_params(param_path);
     vector<SimResult> run_results = simulate(params, print);
 
     ofstream output(output_path);
-    for (SimResult result : run_results)
+    for (SimResult result : run_results) {
         output << result.list_depth << ", " << result.pages_read << "\n";
+    }
 }
 
 void run_parameter_sweep() {
     create_directory("outputs");
 
     vector<thread> threads;
-    for (path p : directory_iterator("params"))
+    for (path p : directory_iterator("params")) {
         threads.emplace_back(run_sim, p, false);
+    }
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }

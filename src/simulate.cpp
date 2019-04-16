@@ -31,20 +31,25 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
 }
 
 vector<SimResult> simulate(SimParams params, bool print) {
-    if (print)
+    if (print) {
         cout << "Creating " << params.num_pages << " web pages." << endl;
+    }
+
     SearchEngine search_engine(params.num_pages, params.max_info_int, params.page_length, params.page_std_dev, params.weights);
 
     vector<SimResult> results;
     for (int i = 0; i < params.num_users; i++) {
-        if (print)
+        if (print) {
             cout << "\rUser " << (i + 1) << " / " << params.num_users << flush;
+        }
 
         SimResult result = iterate(params, search_engine);
         results.push_back(result);
     }
-    if (print)
+    
+    if (print) {
         cout << endl << "Done." << endl;
+    }
 
     return results;
 }

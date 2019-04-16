@@ -1,9 +1,9 @@
 #include "User.hpp"
 #include "distribution.hpp"
-#include <cmath>
 #include <algorithm>
-#include <tuple>
+#include <cmath>
 #include <numeric>
+#include <tuple>
 
 using namespace std;
 
@@ -38,12 +38,14 @@ int User::choose_page(double query, const vector<WebPage> &pages) const {
     int max_index = -1;
     for (size_t i = 0; i < pages.size(); i++) {
         const WebPage& page = pages[i];
-        if (read_pages.count(page.get_id()) != 0)
+        if (read_pages.count(page.get_id()) != 0) {
             continue;
+        }
         
         int page_rank = (i + 1);
-        if ((1.0 / page_rank) < max_score && max_index >= 0)
+        if ((1.0 / page_rank) < max_score && max_index >= 0) {
             break;
+        }
 
         double distance = abs(query - page.get_topic());
         double score = 1 / ((distance + 1) * page_rank);

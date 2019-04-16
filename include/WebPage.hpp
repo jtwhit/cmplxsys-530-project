@@ -4,7 +4,7 @@
 
 class WebPage {
 public:
-    WebPage(int id, int max_info_int, int page_length, double page_std_dev);
+    WebPage(int id_, int max_info_int, int page_length, double page_std_dev);
 
     int get_id() const;
     int get_topic() const;
