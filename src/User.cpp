@@ -10,10 +10,12 @@ using namespace std;
 User::User(int max_info_int, int info_length, double info_std_dev, double sat_pct) :
     satisfied_pct(sat_pct),
     original_info_length(info_length) {
-    tie(topic, search_info) = generate_info(0, max_info_int - 1, info_length, info_std_dev);
+    // Randomly choose topic and normally distribute info around it.
+    tie(topic, search_info) = generate_info(0, max_info_int, info_length, info_std_dev);
 }
 
 ActionData User::read_page(double query, const WebPage &page) {
+    // Find info in user's search info, but not in page's info.
     set<int> new_search_info;
     set<int> page_data = page.get_data();
     set_difference(search_info.begin(), search_info.end(),
@@ -24,6 +26,7 @@ ActionData User::read_page(double query, const WebPage &page) {
     search_info = new_search_info;
     read_pages.insert(page.get_id());
 
+    // Record user action data.
     ActionData data;
     data.page_id = page.get_id();
     data.query = query;

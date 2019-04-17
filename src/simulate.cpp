@@ -5,6 +5,33 @@
 
 using namespace std;
 
+SimProgress::SimProgress(const string &name_) :
+    name(name_) {}
+
+void SimProgress::set_target(int target) {
+    lock_guard progress_guard(progress_mutex);
+    total_ops = target;
+}
+
+void SimProgress::increment() {
+    lock_guard progress_guard(progress_mutex);
+    done_ops++;
+}
+
+bool SimProgress::working() {
+    lock_guard progress_guard(progress_mutex);
+    return done_ops < total_ops;
+}
+
+ostream& operator<<(ostream &output, SimProgress &progress) {
+    lock_guard progress_guard(progress.progress_mutex);
+    double done_ratio = static_cast<double>(progress.done_ops) / progress.total_ops;
+    int done_pct = static_cast<int>(done_ratio * 100);
+    output << "[" << progress.name << " " << done_pct << "%]";
+
+    return output;
+}
+
 SimResult iterate(SimParams params, SearchEngine &search_engine) {
     User user(params.max_info_int, params.user_length, params.user_std_dev, params.user_sat_pct);
 
@@ -21,7 +48,7 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
         int page_index = user.choose_page(query, pages);
         const WebPage &page = pages.at(page_index);
         ActionData data = user.read_page(query, page);
-        search_engine.record_action(data);
+        search_engine.record_action(page_index, data);
 
         max_depth = max(max_depth, page_index);
         num_read++;
@@ -30,25 +57,16 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
     return {max_depth, num_read};
 }
 
-vector<SimResult> simulate(SimParams params, bool print) {
-    if (print) {
-        cout << "Creating " << params.num_pages << " web pages." << endl;
-    }
+vector<SimResult> simulate(SimParams params, SimProgress &progress) {
+    progress.set_target(params.num_users);
 
-    SearchEngine search_engine(params.num_pages, params.max_info_int, params.page_length, params.page_std_dev, params.weights);
+    SearchEngine search_engine(params.weights, params.num_pages, params.max_info_int, params.page_length, params.page_std_dev);
 
     vector<SimResult> results;
     for (int i = 0; i < params.num_users; i++) {
-        if (print) {
-            cout << "\rUser " << (i + 1) << " / " << params.num_users << flush;
-        }
-
         SimResult result = iterate(params, search_engine);
         results.push_back(result);
-    }
-    
-    if (print) {
-        cout << endl << "Done." << endl;
+        progress.increment();
     }
 
     return results;

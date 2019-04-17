@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <fstream>
 #include <functional>
+#include <iostream>
+#include <set>
 #include <thread>
 #include <experimental/filesystem>
 
@@ -26,35 +28,66 @@ SimParams read_params(path param_path) {
     return params;
 }
 
-void run_sim(path param_path, bool print = true) {
+void run_sim(path param_path, SimProgress &progress) {
+    SimParams params = read_params(param_path);
+    vector<SimResult> run_results = simulate(params, progress);
+
     path output_path("outputs");
     output_path /= param_path.filename();
-    if (exists(output_path)) {
-        return;
-    }
-
-    SimParams params = read_params(param_path);
-    vector<SimResult> run_results = simulate(params, print);
-
     ofstream output(output_path);
     for (SimResult result : run_results) {
         output << result.list_depth << ", " << result.pages_read << "\n";
     }
 }
 
-void run_parameter_sweep() {
+void run_sims(const set<path> &paths) {
     create_directory("outputs");
 
+    vector<SimProgress> progresses(paths.begin(), paths.end());
     vector<thread> threads;
-    for (path p : directory_iterator("params")) {
-        threads.emplace_back(run_sim, p, false);
+    int progress_idx = 0;
+    for (path p : paths) {
+        threads.emplace_back(run_sim, p, ref(progresses[progress_idx]));
+    }
+
+    while (any_of(progresses.begin(), progresses.end(), mem_fn(&SimProgress::working))) {
+        for (SimProgress &progress : progresses) {
+            cout << "\r" << progress << " ";
+        }
+
+        this_thread::sleep_for(chrono::seconds(1));
     }
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }
 
-int main() {
-    run_parameter_sweep();
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        cerr << "Error: Must specify at least one parameter file or directory." << endl;
+        cerr << "Usage: " << argv[0] << " PARAM_PATH [PARAM_PATH ...]" << endl;
+        return 1;
+    }
+
+    set<path> paths;
+    for (int i = 1; i < argc; i++) {
+        path new_path(argv[i]);
+        if (!exists(new_path)) {
+            cerr << "Error: " << new_path << " does not exist." << endl;
+            return 1;
+        }
+
+        if (is_directory(new_path)) {
+            for (auto sub_path : directory_iterator(new_path)) {
+                if (is_regular_file(sub_path)) {
+                    paths.insert(sub_path);
+                }
+            }
+        } else if (is_regular_file(new_path)) {
+            paths.insert(new_path);
+        }
+    }
+
+    run_sims(paths);
 
     return 0;
 }

@@ -2,6 +2,8 @@
 
 #include "SearchEngine.hpp"
 #include <vector>
+#include <mutex>
+#include <iostream>
 
 struct SimParams {
     int num_users;
@@ -15,8 +17,23 @@ struct SimParams {
     double user_sat_pct;
 };
 
+class SimProgress {
+public:
+    SimProgress(const std::string &name_);
+
+    void set_target(int target);
+    void increment();
+    bool working();
+
+    friend std::ostream& operator<<(std::ostream &output, SimProgress &progress);
+private:
+    std::string name;
+    int total_ops = 0, done_ops = 0;
+    std::mutex progress_mutex;
+};
+
 struct SimResult {
     int list_depth, pages_read;
 };
 
-std::vector<SimResult> simulate(SimParams params, bool print = true);
+std::vector<SimResult> simulate(SimParams params, SimProgress &progress);

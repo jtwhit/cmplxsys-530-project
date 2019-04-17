@@ -6,7 +6,7 @@ using namespace std;
 
 WebPage::WebPage(int id_, int max_info_int, int page_length, double page_std_dev) :
     id(id_) {
-    tie(topic, data) = generate_info(0, max_info_int - 1, page_length, page_std_dev);
+    tie(topic, data) = generate_info(0, max_info_int, page_length, page_std_dev);
 }
 
 int WebPage::get_id() const {
