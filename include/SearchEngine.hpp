@@ -3,6 +3,8 @@
 #include "WebPage.hpp"
 #include <vector>
 
+class SimProgress;
+
 // Weights given to different types of data. Absolute magnitude of weights does
 // not matter, only their magnitudes relative to each other.
 struct Weights {
@@ -19,7 +21,7 @@ struct ActionData {
 class SearchEngine {
 public:
     // Initialize search engine with given weights, creating num_pages pages with given parameters.
-    SearchEngine(Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev);
+    SearchEngine(SimProgress &progress, Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev);
 
     void rank_pages(double query);
     void record_action(int page_index, ActionData data);

@@ -1,4 +1,5 @@
 #include "SearchEngine.hpp"
+#include "simulate.hpp"
 #include <algorithm>
 #include <cmath>
 #include <unordered_map>
@@ -6,12 +7,13 @@
 
 using namespace std;
 
-SearchEngine::SearchEngine(Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev) :
+SearchEngine::SearchEngine(SimProgress &progress, Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev) :
     max_info_int(max_info_int_),
     page_length(page_length_),
     weights(weights_) {
     for (int i = 0; i < num_pages; i++) {
         web_pages.emplace_back(i, max_info_int, page_length, page_std_dev);
+        progress.increment();
     }
 
     // Initially, no web pages have recorded data.

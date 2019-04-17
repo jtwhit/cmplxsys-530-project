@@ -11,6 +11,8 @@
 using namespace std;
 using namespace std::experimental::filesystem;
 
+const int PRINT_DELAY_MS = 1000;
+
 SimParams read_params(path param_path) {
     SimParams params;
 
@@ -48,15 +50,19 @@ void run_sims(const set<path> &paths) {
     int progress_idx = 0;
     for (path p : paths) {
         threads.emplace_back(run_sim, p, ref(progresses[progress_idx]));
+        progress_idx++;
     }
+
 
     while (any_of(progresses.begin(), progresses.end(), mem_fn(&SimProgress::working))) {
         for (SimProgress &progress : progresses) {
-            cout << "\r" << progress << " ";
+            cout << progress << endl;
         }
+        cout << "\033[" << progresses.size() << "F";
 
-        this_thread::sleep_for(chrono::seconds(1));
+        this_thread::sleep_for(chrono::milliseconds(PRINT_DELAY_MS));
     }
+    cout << endl;
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }
