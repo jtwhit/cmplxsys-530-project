@@ -1,4 +1,5 @@
 #include "simulate.hpp"
+#include "display.hpp"
 #include "distribution.hpp"
 #include <algorithm>
 #include <fstream>
@@ -10,8 +11,6 @@
 
 using namespace std;
 using namespace std::experimental::filesystem;
-
-const int PRINT_DELAY_MS = 1000;
 
 SimParams read_params(path param_path) {
     SimParams params;
@@ -53,16 +52,7 @@ void run_sims(const set<path> &paths) {
         progress_idx++;
     }
 
-
-    while (any_of(progresses.begin(), progresses.end(), mem_fn(&SimProgress::working))) {
-        for (SimProgress &progress : progresses) {
-            cout << progress << endl;
-        }
-        cout << "\033[" << progresses.size() << "F";
-
-        this_thread::sleep_for(chrono::milliseconds(PRINT_DELAY_MS));
-    }
-    cout << endl;
+    display(progresses);
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
 }

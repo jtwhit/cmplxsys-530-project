@@ -1,8 +1,6 @@
 #include "simulate.hpp"
 #include "SearchEngine.hpp"
 #include "User.hpp"
-#include <iomanip>
-#include <iostream>
 
 using namespace std;
 
@@ -24,16 +22,19 @@ bool SimProgress::working() {
     return (total_ops == 0) || (done_ops < total_ops);
 }
 
-ostream& operator<<(ostream &output, SimProgress &progress) {
-    lock_guard progress_guard(progress.progress_mutex);
-    int done_pct = 0;
-    if (progress.total_ops > 0) {
-        double done_ratio = static_cast<double>(progress.done_ops) / progress.total_ops;
-        done_pct = static_cast<int>(done_ratio * 100);
-    }
-    output << left << setw(40) << progress.name << " " << right << setw(3) << done_pct << "%";
+string SimProgress::get_name() {
+    lock_guard progress_guard(progress_mutex);
+    return name;
+}
 
-    return output;
+int SimProgress::get_percentage() {
+    lock_guard progress_guard(progress_mutex);
+    if (total_ops == 0) {
+        return 0;
+    }
+
+    double done_ratio = static_cast<double>(done_ops) / total_ops;
+    return static_cast<int>(done_ratio * 100); 
 }
 
 SimResult iterate(SimParams params, SearchEngine &search_engine) {

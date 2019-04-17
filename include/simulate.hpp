@@ -24,8 +24,9 @@ public:
     void set_target(int target);
     void increment();
     bool working();
+    std::string get_name();
+    int get_percentage();
 
-    friend std::ostream& operator<<(std::ostream &output, SimProgress &progress);
 private:
     std::string name;
     int total_ops = 0, done_ops = 0;
