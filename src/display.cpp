@@ -37,7 +37,7 @@ void display(std::vector<SimProgress> &progresses) {
         erase();
 
         for (int i = 1; i < (num_row - 1); i++) {
-            int prog_idx = i + row_offset;
+            int prog_idx = i + row_offset - 1;
             if (prog_idx >= num_progress) {
                 break;
             }
@@ -73,7 +73,7 @@ void display(std::vector<SimProgress> &progresses) {
         int ch = getch();
         if (ch == KEY_UP && row_offset > 0) {
             row_offset--;
-        } else if (ch == KEY_DOWN && row_offset < (num_progress - num_row)) {
+        } else if (ch == KEY_DOWN && row_offset <= (num_progress - num_row)) {
             row_offset++;
         } else if (ch == KEY_LEFT && col_offset > 0) {
             col_offset--;
