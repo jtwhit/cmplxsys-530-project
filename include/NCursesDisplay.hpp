@@ -22,6 +22,6 @@ private:
     std::mutex display_mutex;
     int num_progress = 0, max_name_length = 0;
     int num_row, num_col;
-    int first_name_col, last_name_col;
     int row_offset = 0, col_offset = 0;
+    int pct_size = 5;
 };
