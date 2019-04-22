@@ -83,7 +83,7 @@ void run_sims(const set<path> &paths) {
     while (count(done_flags.begin(), done_flags.end(), false) > 0) {
         display.render();
         display.handle_input();
-        this_thread::sleep_for(chrono::milliseconds(1));
+        this_thread::sleep_for(chrono::milliseconds(10));
     }
 
     for_each(threads.begin(), threads.end(), mem_fn(&thread::join));

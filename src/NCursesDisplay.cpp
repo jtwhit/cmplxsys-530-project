@@ -11,9 +11,7 @@ NCursesDisplay::NCursesDisplay() {
     nodelay(stdscr, true);
     keypad(stdscr, true);
     curs_set(0);
-    getmaxyx(stdscr, num_row, num_col);
     first_name_col = 3;
-    last_name_col = num_col - 8;
 }
 
 NCursesDisplay::~NCursesDisplay() {
@@ -40,6 +38,10 @@ void NCursesDisplay::update_progress(const string &name, int progress) {
 
 void NCursesDisplay::render() {
     lock_guard<mutex> display_lock(display_mutex);
+
+    getmaxyx(stdscr, num_row, num_col);
+    last_name_col = num_col - 8;
+
     erase();
 
     for (int i = 1; i < (num_row - 1); i++) {
@@ -48,18 +50,21 @@ void NCursesDisplay::render() {
             break;
         }
 
-        string name = names[prog_idx];
-        string trunc_name = name.substr(col_offset, last_name_col - first_name_col);
-
         if (col_offset > 0) {
             mvaddstr(i, 0, "...");
         }
 
-        if (trunc_name.length() < (trunc_name.length() - col_offset)) {
-            mvaddstr(i, last_name_col, "...");
+        string name = names[prog_idx];
+        if (col_offset < static_cast<int>(name.length())) {
+            string trunc_name = name.substr(col_offset, last_name_col - first_name_col);
+
+            if (trunc_name.length() < (name.length() - col_offset)) {
+                mvaddstr(i, last_name_col, "...");
+            }
+
+            mvaddstr(i, first_name_col, trunc_name.c_str());
         }
 
-        mvaddstr(i, first_name_col, trunc_name.c_str());
         mvprintw(i, num_col - 5, "%3d%% ", progresses[name]);
     }
 
@@ -67,7 +72,7 @@ void NCursesDisplay::render() {
         mvaddstr(0, 3, "...");
     }
 
-    if (row_offset < (num_progress - num_row)) {
+    if (row_offset <= (num_progress - num_row + 1)) {
         mvaddstr(num_row - 1, 3, "...");
     }
 
@@ -79,7 +84,7 @@ void NCursesDisplay::handle_input() {
     int ch = getch();
     if (ch == KEY_UP && row_offset > 0) {
         row_offset--;
-    } else if (ch == KEY_DOWN && row_offset <= (num_progress - num_row)) {
+    } else if (ch == KEY_DOWN && row_offset <= (num_progress - num_row + 1)) {
         row_offset++;
     } else if (ch == KEY_LEFT && col_offset > 0) {
         col_offset--;
