@@ -1,11 +1,12 @@
 #pragma once
 
 #include "SearchEngine.hpp"
+#include "Display.hpp"
+#include <string>
 #include <vector>
-#include <mutex>
-#include <iostream>
 
 struct SimParams {
+    std::string name;
     int num_users;
     int num_pages;
     int max_info_int;
@@ -17,24 +18,8 @@ struct SimParams {
     double user_sat_pct;
 };
 
-class SimProgress {
-public:
-    SimProgress(const std::string &name_);
-
-    void set_target(int target);
-    void increment();
-    bool working();
-    std::string get_name();
-    int get_percentage();
-
-private:
-    std::string name;
-    int total_ops = 0, done_ops = 0;
-    std::mutex progress_mutex;
-};
-
 struct SimResult {
     int list_depth, pages_read;
 };
 
-std::vector<SimResult> simulate(SimParams params, SimProgress &progress);
+std::vector<SimResult> simulate(SimParams params, Display &display);

@@ -4,39 +4,6 @@
 
 using namespace std;
 
-SimProgress::SimProgress(const string &name_) :
-    name(name_) {}
-
-void SimProgress::set_target(int target) {
-    lock_guard progress_guard(progress_mutex);
-    total_ops = target;
-}
-
-void SimProgress::increment() {
-    lock_guard progress_guard(progress_mutex);
-    done_ops++;
-}
-
-bool SimProgress::working() {
-    lock_guard progress_guard(progress_mutex);
-    return (total_ops == 0) || (done_ops < total_ops);
-}
-
-string SimProgress::get_name() {
-    lock_guard progress_guard(progress_mutex);
-    return name;
-}
-
-int SimProgress::get_percentage() {
-    lock_guard progress_guard(progress_mutex);
-    if (total_ops == 0) {
-        return 0;
-    }
-
-    double done_ratio = static_cast<double>(done_ops) / total_ops;
-    return static_cast<int>(done_ratio * 100); 
-}
-
 SimResult iterate(SimParams params, SearchEngine &search_engine) {
     User user(params.max_info_int, params.user_length, params.user_std_dev, params.user_sat_pct);
 
@@ -61,17 +28,19 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
     return {max_depth, num_read};
 }
 
-vector<SimResult> simulate(SimParams params, SimProgress &progress) {
-    progress.set_target(params.num_users);
-
+vector<SimResult> simulate(SimParams params, Display &display) {
     SearchEngine search_engine(params.weights, params.num_pages, params.max_info_int, params.page_length, params.page_std_dev);
 
     vector<SimResult> results;
     for (int i = 0; i < params.num_users; i++) {
         SimResult result = iterate(params, search_engine);
         results.push_back(result);
-        progress.increment();
+
+        double progress_ratio = static_cast<double>(i) / params.num_users;
+        int progress_pct = static_cast<int>(progress_ratio * 100);
+        display.update_progress(params.name, progress_pct);
     }
+    display.update_progress(params.name, 100);
 
     return results;
 }
