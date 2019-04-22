@@ -3,7 +3,6 @@
 
 ## Building and Running Project
 Requires CMake version 3.5+ and a compiler with C++17 support.
-**Warning:** The simulation is very greedy in terms of CPU and memory usage. Running a large number of simulations will likely max out both.
 
 1. Run CMake.
 

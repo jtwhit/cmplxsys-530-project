@@ -36,18 +36,18 @@ ActionData User::read_page(double query, const WebPage &page) {
     return data;
 }
 
-int User::choose_page(double query, const vector<WebPage> &pages) const {
+int User::choose_page(double query, SearchEngine &search_engine) const {
     double max_score = 0;
     int max_index = -1;
-    for (size_t i = 0; i < pages.size(); i++) {
-        const WebPage& page = pages[i];
-        if (read_pages.count(page.get_id()) != 0) {
-            continue;
-        }
-        
+    for (int i = 0; i < search_engine.get_num_pages(); i++) {        
         int page_rank = (i + 1);
         if ((1.0 / page_rank) < max_score && max_index >= 0) {
             break;
+        }
+
+        const WebPage& page = search_engine.get_page(i);
+        if (read_pages.count(page.get_id()) != 0) {
+            continue;
         }
 
         double distance = abs(query - page.get_topic());

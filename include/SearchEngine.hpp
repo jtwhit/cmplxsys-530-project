@@ -21,17 +21,18 @@ struct ActionData {
 class SearchEngine {
 public:
     // Initialize search engine with given weights, creating num_pages pages with given parameters.
-    SearchEngine(SimProgress &progress, Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev);
+    SearchEngine(Weights weights_, int num_pages_, int max_info_int_, int page_length_, double page_std_dev_);
 
     void rank_pages(double query);
     void record_action(int page_index, ActionData data);
+    const WebPage& get_page(int index);
 
-    const std::vector<WebPage>& get_pages() const;
+    int get_num_pages() const;
 
 private:
-    int max_info_int, page_length;
+    int num_pages, max_info_int, page_length, num_sorted = 0;
+    double page_std_dev;
     Weights weights;
     std::vector<WebPage> web_pages;
     std::vector<ActionData> recorded_data;
-    std::vector<WebPage>::iterator sorted_end;
 };

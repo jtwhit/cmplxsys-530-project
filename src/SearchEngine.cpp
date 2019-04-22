@@ -7,18 +7,12 @@
 
 using namespace std;
 
-SearchEngine::SearchEngine(SimProgress &progress, Weights weights_, int num_pages, int max_info_int_, int page_length_, double page_std_dev) :
+SearchEngine::SearchEngine(Weights weights_, int num_pages_, int max_info_int_, int page_length_, double page_std_dev_) :
+    num_pages(num_pages_),
     max_info_int(max_info_int_),
     page_length(page_length_),
-    weights(weights_) {
-    for (int i = 0; i < num_pages; i++) {
-        web_pages.emplace_back(i, max_info_int, page_length, page_std_dev);
-        progress.increment();
-    }
-
-    // Initially, no web pages have recorded data.
-    sorted_end = web_pages.begin();
-}
+    page_std_dev(page_std_dev_),
+    weights(weights_) {}
 
 void SearchEngine::rank_pages(double query) {
     // Calculate scores for each web page with recorded data.
@@ -35,7 +29,7 @@ void SearchEngine::rank_pages(double query) {
     }
 
     // Sort the pages with recorded data according to their scores.
-    sort(web_pages.begin(), sorted_end,
+    sort(web_pages.begin(), web_pages.begin() + num_sorted,
         [&scores](const WebPage &page1, const WebPage &page2) {
             return scores[page1.get_id()] > scores[page2.get_id()];
         });
@@ -44,15 +38,22 @@ void SearchEngine::rank_pages(double query) {
 void SearchEngine::record_action(int page_index, ActionData data) {
     // If the page previously had no recorded data, swap it into the sorted part of
     // the vector and increment the size of the sorted part.
-    auto page_iter = web_pages.begin() + page_index;
-    if (page_iter >= sorted_end) {
-        iter_swap(page_iter, sorted_end);
-        sorted_end++;
+    if (page_index >= num_sorted) {
+        iter_swap(web_pages.begin() + page_index, web_pages.begin() + num_sorted);
+        num_sorted++;
     }
 
     recorded_data.push_back(data);
 }
 
-const vector<WebPage>& SearchEngine::get_pages() const {
-    return web_pages;
+const WebPage& SearchEngine::get_page(int index) {
+    while (index >= static_cast<int>(web_pages.size())) {
+        web_pages.emplace_back(web_pages.size(), max_info_int, page_length, page_std_dev);
+    }
+
+    return web_pages[index];
+}
+
+int SearchEngine::get_num_pages() const {
+    return num_pages;
 }

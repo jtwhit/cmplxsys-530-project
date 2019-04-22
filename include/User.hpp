@@ -11,7 +11,7 @@ public:
     User(int max_info_int, int info_length, double info_std_dev, double sat_pct);
 
     ActionData read_page(double query, const WebPage &page);
-    int choose_page(double query, const std::vector<WebPage> &pages) const;
+    int choose_page(double query, SearchEngine &search_engine) const;
     double generate_query() const;
     bool is_satisfied() const;
 

@@ -49,9 +49,8 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
             old_query = query;
         }
 
-        const vector<WebPage>& pages = search_engine.get_pages();
-        int page_index = user.choose_page(query, pages);
-        const WebPage &page = pages.at(page_index);
+        int page_index = user.choose_page(query, search_engine);
+        const WebPage &page = search_engine.get_page(page_index);
         ActionData data = user.read_page(query, page);
         search_engine.record_action(page_index, data);
 
@@ -63,9 +62,9 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
 }
 
 vector<SimResult> simulate(SimParams params, SimProgress &progress) {
-    progress.set_target(params.num_pages + params.num_users);
+    progress.set_target(params.num_users);
 
-    SearchEngine search_engine(progress, params.weights, params.num_pages, params.max_info_int, params.page_length, params.page_std_dev);
+    SearchEngine search_engine(params.weights, params.num_pages, params.max_info_int, params.page_length, params.page_std_dev);
 
     vector<SimResult> results;
     for (int i = 0; i < params.num_users; i++) {
