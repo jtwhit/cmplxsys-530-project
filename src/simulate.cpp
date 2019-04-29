@@ -1,24 +1,33 @@
 #include "simulate.hpp"
 #include "SearchEngine.hpp"
 #include "User.hpp"
+#include "Display.hpp"
+#include <iostream>
 
 using namespace std;
 
 SimResult iterate(SimParams params, SearchEngine &search_engine) {
-    User user(params.max_info_int, params.user_length, params.user_std_dev, params.user_sat_pct);
+    //cout << "gen user" << endl;
+    User user(params);
+    //cout << "done gen" << endl;
 
     int max_depth = 0, num_read = 0;
     double old_query = -1.0;
     while (!user.is_satisfied() && num_read < params.num_pages) {
+        //cout << num_read << endl;
+        //cout << "query" << endl;
         double query = user.generate_query();
         if (query != old_query) {
             search_engine.rank_pages(query);
             old_query = query;
         }
 
+        //cout << "choose" << endl;
         int page_index = user.choose_page(query, search_engine);
+        //cout << "read" << endl;
         const WebPage &page = search_engine.get_page(page_index);
         ActionData data = user.read_page(query, page);
+        //cout << "record" << endl;
         search_engine.record_action(page_index, data);
 
         max_depth = max(max_depth, page_index);
@@ -29,10 +38,11 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
 }
 
 vector<SimResult> simulate(SimParams params, Display &display) {
-    SearchEngine search_engine(params.weights, params.num_pages, params.max_info_int, params.page_length, params.page_std_dev);
+    SearchEngine search_engine(params);
 
     vector<SimResult> results;
     for (int i = 0; i < params.num_users; i++) {
+        //cout << "iterate" << endl;
         SimResult result = iterate(params, search_engine);
         results.push_back(result);
 
@@ -41,6 +51,7 @@ vector<SimResult> simulate(SimParams params, Display &display) {
         display.update_progress(params.name, progress_pct);
     }
     display.update_progress(params.name, 100);
+    //cout << "done" << endl;
 
     return results;
 }

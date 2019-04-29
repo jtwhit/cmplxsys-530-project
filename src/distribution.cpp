@@ -3,14 +3,24 @@
 #include <cmath>
 #include <limits>
 #include <random>
+#include <ctime>
 
 using namespace std;
 
-pair<int, set<int>> generate_info(int info_min, int info_max, int length, double std_dev) {
-    // Initialize random number generator with random seed.
-    random_device rd;
-    default_random_engine random_gen(rd());
+random_device rd;
+default_random_engine random_gen(rd());
 
+int uniform_int(int min, int max) {
+    uniform_int_distribution<> uniform(min, max);
+    return uniform(random_gen);
+}
+
+double uniform_real(double min, double max) {
+    uniform_real_distribution<> uniform(min, max);
+    return uniform(random_gen);
+}
+
+pair<int, set<int>> generate_info(int info_min, int info_max, int length, double std_dev) {
     // Create topic on uniform distribution between min and max.
     uniform_int_distribution<> uniform(info_min, info_max);
     int topic = uniform(random_gen);

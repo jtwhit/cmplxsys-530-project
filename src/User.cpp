@@ -4,14 +4,17 @@
 #include <cmath>
 #include <numeric>
 #include <tuple>
+#include <iostream>
 
 using namespace std;
 
-User::User(int max_info_int, int info_length, double info_std_dev, double sat_pct) :
-    satisfied_pct(sat_pct),
-    original_info_length(info_length) {
+User::User(const SimParams &params_) :
+    params(params_) {
+    satisfied_pct = uniform_real(params.user_sat_pct_min, params.user_sat_pct_max);
+    info_length = uniform_int(params.user_length_min, params.user_length_max);
+    double std_dev = uniform_real(params.user_std_dev_min, params.user_std_dev_max);
     // Randomly choose topic and normally distribute info around it.
-    tie(topic, search_info) = generate_info(0, max_info_int, info_length, info_std_dev);
+    tie(topic, search_info) = generate_info(0, params.max_info_int, info_length, std_dev);
 }
 
 ActionData User::read_page(double query, const WebPage &page) {
@@ -26,12 +29,14 @@ ActionData User::read_page(double query, const WebPage &page) {
     search_info = new_search_info;
     read_pages.insert(page.get_id());
 
+    //cout << "\t" << query << " " << page.get_id() << " " << page.get_topic() << " " << num_found << endl;
     // Record user action data.
     ActionData data;
     data.page_id = page.get_id();
     data.query = query;
-    data.info_found = num_found;
-    data.topic_similarity = abs(query - page.get_topic());
+    data.info_found = static_cast<double>(num_found) / page.get_length();
+    //double topic_distance = abs(query - page.get_topic());
+    data.topic_similarity = 0;//(params.max_info_int - topic_distance) / params.max_info_int;
 
     return data;
 }
@@ -67,5 +72,5 @@ double User::generate_query() const {
 }
 
 bool User::is_satisfied() const {
-    return (static_cast<double>(search_info.size()) / original_info_length) <= (1 - satisfied_pct);
+    return (static_cast<double>(search_info.size()) / info_length) <= (1 - satisfied_pct);
 }

@@ -1,13 +1,15 @@
 #pragma once
 
+#include "simulate.hpp"
 #include <set>
 
 class WebPage {
 public:
-    WebPage(int id_, int max_info_int, int page_length, double page_std_dev);
+    WebPage(const SimParams &params, int id_);
 
     int get_id() const;
     int get_topic() const;
+    int get_length() const;
     const std::set<int>& get_data() const;
 
 private:

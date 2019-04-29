@@ -1,5 +1,6 @@
 #pragma once
 
+#include "simulate.hpp"
 #include "SearchEngine.hpp"
 #include "WebPage.hpp"
 #include <set>
@@ -8,7 +9,7 @@
 
 class User {
 public:
-    User(int max_info_int, int info_length, double info_std_dev, double sat_pct);
+    User(const SimParams &params_);
 
     ActionData read_page(double query, const WebPage &page);
     int choose_page(double query, SearchEngine &search_engine) const;
@@ -16,7 +17,8 @@ public:
     bool is_satisfied() const;
 
 private:
+    SimParams params;
     double satisfied_pct;
-    int topic, original_info_length, max_depth = 0;
+    int topic, info_length, max_depth = 0;
     std::set<int> search_info, read_pages;
 };
