@@ -37,7 +37,7 @@ SimResult iterate(SimParams params, SearchEngine &search_engine) {
     return {max_depth, num_read};
 }
 
-vector<SimResult> simulate(SimParams params, Display &display) {
+vector<SimResult> simulate(SimParams params, shared_ptr<Display> display) {
     SearchEngine search_engine(params);
 
     vector<SimResult> results;
@@ -48,9 +48,14 @@ vector<SimResult> simulate(SimParams params, Display &display) {
 
         double progress_ratio = static_cast<double>(i) / params.num_users;
         int progress_pct = static_cast<int>(progress_ratio * 100);
-        display.update_progress(params.name, progress_pct);
+
+        if (display) {
+            display->update_progress(params.name, progress_pct);
+        }
     }
-    display.update_progress(params.name, 100);
+    if (display) {
+        display->update_progress(params.name, 100);
+    }
     //cout << "done" << endl;
 
     return results;

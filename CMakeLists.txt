@@ -13,6 +13,14 @@ target_sources(search_engine PRIVATE
                "src/User.cpp"
                "src/WebPage.cpp")
 
+add_executable(ants "src/ANTs.cpp")
+target_sources(ants PRIVATE
+               "src/distribution.cpp"
+               "src/SearchEngine.cpp"
+               "src/simulate.cpp"
+               "src/User.cpp"
+               "src/WebPage.cpp")
+
 find_package(Threads REQUIRED)
 
 find_package(Curses)
@@ -27,3 +35,7 @@ endif()
 target_link_libraries(search_engine ${CMAKE_THREAD_LIBS_INIT} -lstdc++fs ${CURSES_LIBRARIES} -lncurses)
 
 target_compile_options(search_engine PUBLIC -O3 -std=c++17 -Wall -Werror)
+
+target_link_libraries(ants ${CMAKE_THREAD_LIBS_INIT} -lstdc++fs ${CURSES_LIBRARIES} -lncurses)
+
+target_compile_options(ants PUBLIC -O3 -std=c++17 -Wall -Werror)

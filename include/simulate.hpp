@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 class Display;
 
@@ -29,4 +30,4 @@ struct SimResult {
     int list_depth, pages_read;
 };
 
-std::vector<SimResult> simulate(SimParams params, Display &display);
+std::vector<SimResult> simulate(SimParams params, std::shared_ptr<Display> display = nullptr);

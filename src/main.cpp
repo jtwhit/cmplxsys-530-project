@@ -37,7 +37,7 @@ SimParams read_params(path param_path) {
     return params;
 }
 
-void run_sim(path sim_path, Display &display) {
+void run_sim(path sim_path, shared_ptr<Display> display) {
     SimParams params = read_params(sim_path);
     vector<SimResult> run_results = simulate(params, display);
 
@@ -49,7 +49,7 @@ void run_sim(path sim_path, Display &display) {
     }
 }
 
-void run_sim_worker(PathQueue &path_queue, atomic_bool &done, Display &display) {
+void run_sim_worker(PathQueue &path_queue, atomic_bool &done, shared_ptr<Display> display) {
     while (!path_queue.empty()) {
         path sim_path = path_queue.pop();
         run_sim(sim_path, display);
@@ -61,16 +61,14 @@ void run_sims(const set<path> &paths) {
     create_directory("outputs");
 
     #ifdef HAS_NCURSES
-    NCursesDisplay ncurses_display;
-    Display& display = ncurses_display;
+    shared_ptr<Display> display = make_shared<NCursesDisplay>();
     #else
-    ConsoleDisplay console_display;
-    Display& display = console_display;
+    shared_ptr<Display> display = make_shared<ConsoleDisplay>();
     #endif
 
     PathQueue path_queue;
     for (path p : paths) {
-        display.initialize_name(p.string());
+        display->initialize_name(p.string());
         path_queue.push(p);
     }
 
@@ -78,12 +76,12 @@ void run_sims(const set<path> &paths) {
     vector<thread> threads;
     vector<atomic_bool> done_flags(num_threads);
     for (unsigned int i = 0; i < num_threads; i++) {
-        threads.emplace_back(run_sim_worker, ref(path_queue), ref(done_flags[i]), ref(display));
+        threads.emplace_back(run_sim_worker, ref(path_queue), ref(done_flags[i]), display);
     }
 
     while (count(done_flags.begin(), done_flags.end(), false) > 0) {
-        display.render();
-        display.handle_input();
+        display->render();
+        display->handle_input();
         this_thread::sleep_for(chrono::milliseconds(1));
     }
 

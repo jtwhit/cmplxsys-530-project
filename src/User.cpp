@@ -14,7 +14,7 @@ User::User(const SimParams &params_) :
     info_length = uniform_int(params.user_length_min, params.user_length_max);
     double std_dev = uniform_real(params.user_std_dev_min, params.user_std_dev_max);
     // Randomly choose topic and normally distribute info around it.
-    tie(topic, search_info) = generate_info(0, params.max_info_int, info_length, std_dev);
+    tie(topic, search_info) = generate_info(params.max_info_int*0.2, params.max_info_int*0.8, info_length, std_dev);
 }
 
 ActionData User::read_page(double query, const WebPage &page) {
