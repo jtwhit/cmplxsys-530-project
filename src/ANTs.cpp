@@ -7,10 +7,11 @@
 
 using namespace std;
 
-const double INITIAL_TEMPERATURE = 1;
-const double TEMP_DECREASE_RATE = 1.01;
-const double PERTURB_AMOUNT = 0.05;
+const double INITIAL_TEMPERATURE = 0.1;
+const double TEMP_DECREASE_RATE = 1.1;
+const double PERTURB_AMOUNT = 0.1;
 const int NUM_RUNS = 100;
+const int NUM_ITERATIONS = 100;
 
 double score_weights(SimParams params, Weights weights) {
     params.weights = weights;
@@ -48,7 +49,8 @@ Weights normalize(Weights weights) {
 }
 
 double create_delta() {
-    return uniform_real(-PERTURB_AMOUNT, PERTURB_AMOUNT);
+    int delta = (uniform_int(0, 1) * 2) - 1;
+    return delta * PERTURB_AMOUNT;
 }
 
 Weights get_next_weights(Weights current_weights) {
@@ -71,7 +73,7 @@ double move_probability(SimParams params, Weights current_weights, Weights next_
 
     double current_score = current_handle.get();
     double next_score = next_handle.get();
-    cout << current_score << " " << next_score << endl;
+    cout << current_score << endl;
     double ratio = current_score / next_score;
 
     return pow(ratio, 1.0 / temperature);
@@ -81,9 +83,8 @@ Weights optimize_weights(const SimParams &params) {
     Weights weights = params.weights;
 
     double temperature = INITIAL_TEMPERATURE;
-    while (true) {
-        cout << "Temperature: " << temperature << endl;
-        cout << "Weights: (" << weights.page_click << ", " << weights.info_found << ", " << weights.topic_similarity << ")" << endl;
+    for (int i = 0; i < NUM_ITERATIONS; i++) {
+        cout << temperature << "," << weights.page_click << "," << weights.info_found << "," << weights.topic_similarity << ",";
 
         Weights next_weights = get_next_weights(weights);
         double prob = move_probability(params, weights, next_weights, temperature);
