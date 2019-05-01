@@ -35,8 +35,8 @@ ActionData User::read_page(double query, const WebPage &page) {
     data.page_id = page.get_id();
     data.query = query;
     data.info_found = static_cast<double>(num_found) / page.get_length();
-    //double topic_distance = abs(query - page.get_topic());
-    data.topic_similarity = 0;//(params.max_info_int - topic_distance) / params.max_info_int;
+    double topic_distance = abs(query - page.get_topic());
+    data.topic_similarity = (params.max_info_int - topic_distance) / params.max_info_int;
 
     return data;
 }

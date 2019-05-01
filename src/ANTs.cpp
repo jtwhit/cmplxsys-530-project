@@ -1,36 +1,31 @@
 #include "ANTs.hpp"
+#include "simulate.hpp"
 #include "distribution.hpp"
-#include <numeric>
 #include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <cmath>
-#include <experimental/filesystem>
 #include <future>
 
 using namespace std;
-using namespace std::experimental::filesystem;
 
-const double SCORED_PROPORTION = 0.25;
-const double INITIAL_TEMPERATURE = 5;
+const double INITIAL_TEMPERATURE = 1;
+const double TEMP_DECREASE_RATE = 1.01;
 const double PERTURB_AMOUNT = 0.05;
-const int MAX_CONSECUTIVE_UNCHANGED = 5;
+const int NUM_RUNS = 100;
 
 double score_weights(SimParams params, Weights weights) {
     params.weights = weights;
-    vector<SimResult> results = simulate(params);
 
-    size_t num_considered = static_cast<size_t>(results.size() * SCORED_PROPORTION);
-    int sum_depth = 0, num_depth = 0;
-    for (size_t i = num_considered; i < results.size(); i++) {
-        int depth = results[i].list_depth;
-        if (depth <= 30) {
-            sum_depth += depth;
-            num_depth++;
+    int sum_read = 0, num_read = 0;
+    for (int i = 0; i < NUM_RUNS; i++) {
+        vector<SimResult> results = simulate(params);
+        for (size_t i = 0; i < results.size(); i++) {
+            int read = results[i].pages_read;
+            sum_read += read;
+            num_read++;
         }
     }
 
-    return sum_depth / static_cast<double>(num_depth);
+    return sum_read / static_cast<double>(num_read);
 }
 
 Weights normalize(Weights weights) {
@@ -76,6 +71,7 @@ double move_probability(SimParams params, Weights current_weights, Weights next_
 
     double current_score = current_handle.get();
     double next_score = next_handle.get();
+    cout << current_score << " " << next_score << endl;
     double ratio = current_score / next_score;
 
     return pow(ratio, 1.0 / temperature);
@@ -84,46 +80,37 @@ double move_probability(SimParams params, Weights current_weights, Weights next_
 Weights optimize_weights(const SimParams &params) {
     Weights weights = params.weights;
 
-    int consecutive_unchanged = 0;
     double temperature = INITIAL_TEMPERATURE;
-    while (consecutive_unchanged < MAX_CONSECUTIVE_UNCHANGED) {
-        cout << "Temperature: " << temperature << " Weights: (" << weights.page_click << ", " << weights.info_found << ", " << weights.topic_similarity << ")" << endl;
+    while (true) {
+        cout << "Temperature: " << temperature << endl;
+        cout << "Weights: (" << weights.page_click << ", " << weights.info_found << ", " << weights.topic_similarity << ")" << endl;
 
         Weights next_weights = get_next_weights(weights);
         double prob = move_probability(params, weights, next_weights, temperature);
 
         if (prob > uniform_real(0, 1)) {
             weights = next_weights;
-            consecutive_unchanged = 0;
-        } else {
-            consecutive_unchanged++;
         }
-        temperature /= 1.1;
+        temperature /= TEMP_DECREASE_RATE;
     }
 
     return weights;
 }
 
-SimParams read_params(path param_path) {
-    SimParams params;
-    params.name = param_path.string();
-
-    ifstream input(param_path);
-    input >> params.num_users;
-    input >> params.num_pages;
-    input >> params.max_info_int;
-    input >> params.page_length_min >> params.page_length_max;
-    input >> params.page_std_dev_min >> params.page_std_dev_max;
-    input >> params.weights.page_click >> params.weights.info_found >> params.weights.topic_similarity;
-    input >> params.user_length_min >> params.user_length_max;
-    input >> params.user_std_dev_min >> params.user_std_dev_max;
-    input >> params.user_sat_pct_min >> params.user_sat_pct_max;
-
-    return params;
-}
-
 int main() {
     SimParams params = read_params("params/ants.txt");
     optimize_weights(params);
+
+    /*for (double i = 0; i < 1; i += 0.05) {
+        for (double j = 0; j < 1-i; j += 0.05) {
+            double k = 1 - i - j;
+            Weights weights{i, j, k};
+            weights = normalize(weights);
+            double score = score_weights(params, weights);
+            cout << score << ",";
+        }
+        cout << endl;
+    }*/
+
     return 0;
 }

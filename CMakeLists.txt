@@ -6,6 +6,7 @@ include_directories(include)
 
 add_executable(search_engine "src/main.cpp")
 target_sources(search_engine PRIVATE
+               "src/params.cpp"
                "src/distribution.cpp"
                "src/PathQueue.cpp"
                "src/SearchEngine.cpp"
@@ -16,6 +17,7 @@ target_sources(search_engine PRIVATE
 add_executable(ants "src/ANTs.cpp")
 target_sources(ants PRIVATE
                "src/distribution.cpp"
+               "src/params.cpp"
                "src/SearchEngine.cpp"
                "src/simulate.cpp"
                "src/User.cpp"
