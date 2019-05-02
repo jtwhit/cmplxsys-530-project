@@ -4,7 +4,6 @@
 #include <cmath>
 #include <unordered_map>
 #include <utility>
-#include <iostream>
 
 using namespace std;
 
@@ -16,10 +15,9 @@ void SearchEngine::rank_pages(double query) {
     unordered_map<int, double> scores;
     for (auto data : recorded_data) {
         // Generate score from data and weights.
-        const Weights &weights = params.weights;
-        double score = weights.page_click +
-                       weights.topic_similarity * data.topic_similarity +
-                       weights.info_found * data.info_found;
+        double score = params.get_real(Param::page_click_weight) +
+                       params.get_real(Param::topic_similarity_weight) * data.topic_similarity +
+                       params.get_real(Param::info_found_weight) * data.info_found;
         // Calculate distance between the current query and the data's query.
         double distance = abs(query - data.query);
         // Update page score proportional to data score and inversely proportional to data distance.
@@ -45,7 +43,8 @@ void SearchEngine::record_action(int page_index, ActionData data) {
 }
 
 const WebPage& SearchEngine::get_page(int index) {
-    //cout << index << endl;
+    // Lazily generate web pages.
+    // Saves a ton of time and memory with no effect on simulation.
     while (index >= static_cast<int>(web_pages.size())) {
         web_pages.emplace_back(params, web_pages.size());
     }
@@ -54,5 +53,5 @@ const WebPage& SearchEngine::get_page(int index) {
 }
 
 int SearchEngine::get_num_pages() const {
-    return params.num_pages;
+    return params.get_int(Param::num_pages);
 }

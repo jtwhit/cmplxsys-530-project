@@ -1,16 +1,15 @@
 #include "WebPage.hpp"
 #include "distribution.hpp"
 #include <tuple>
-#include <iostream>
 
 using namespace std;
 
 WebPage::WebPage(const SimParams &params, int id_) :
     id(id_) {
-    int page_length = uniform_int(params.page_length_min, params.page_length_max);
-    double page_std_dev = uniform_real(params.page_std_dev_min, params.page_std_dev_max);
-    tie(topic, data) = generate_info(0, params.max_info_int, page_length, page_std_dev);
-    //cout << data.size() << endl;
+    int page_length = uniform_int(params.get_int(Param::page_length_min), params.get_int(Param::page_length_max));
+    double page_std_dev = uniform_real(params.get_real(Param::page_std_dev_min), params.get_real(Param::page_std_dev_max));
+    // Randomly choose topic and normally distribute info around it.
+    tie(topic, data) = generate_info(0, params.get_int(Param::max_info_int), page_length, page_std_dev);
 }
 
 int WebPage::get_id() const {

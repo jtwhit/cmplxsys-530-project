@@ -2,7 +2,7 @@
 ### By Jason Whitfield
 
 ## Code of Interest
-Simulation code is contained in `distribution.cpp`, `SearchEngine.cpp`, `simulate.cpp`, `User.cpp`, and `WebPage.cpp`. The other files are display code and parameter sweep framework.
+Simulation and ANTs code is contained in `ANTS.cpp`, `distribution.cpp`, `SearchEngine.cpp`, `simulate.cpp`, `User.cpp`, and `WebPage.cpp`. The other files are just for running the simulations efficiently.
 
 ## Building and Running Project
 Requires CMake version 3.5+ and a compiler with C++17 support.
@@ -15,33 +15,38 @@ Requires CMake version 3.5+ and a compiler with C++17 support.
 
    `make`
 
-3. Execute program. `PARAM_PATH` is a path to a simulation parameter file or a directory containing such files. Results are written to the `outputs` directory.
+3. Execute simulation program. `PARAM_PATH` is a path to a simulation parameter file or a directory containing such files. Results are written to the `outputs` directory.
 
    `./search_engine PARAM_PATH [PARAM_PATH ...]`
 
+4. Execute ANTs optimization program.
+
+   `./ants`
+
 ## Simulation Parameter Files
-Simulation parameter files take the following form:
+Simulation parameter either specify the parameters used to run the simulation, or a sweep on one parameter. Unspecified parameters take the value in params/default.params.
+
+Valid parameter settings:
 ```
 NUM_USERS
 NUM_PAGES
-MAX_INFO_VALUE
-MIN_PAGE_LENGTH                     MAX_PAGE_LENGTH
-MIN_PAGE_STANDARD_DEVIATION         MAX_PAGE_STANDARD_DEVIATION
-CLICK_WEIGHT    INFO_FOUND_WEIGHT   TOPIC_SIMILARITY_WEIGHT
-MIN_USER_INFO_LENGTH                MAX_USER_INFO_LENGTH
-MIN_USER_INFO_STANDARD_DEVIATION    MAX_USER_INFO_STANDARD_DEVIATION
-MIN_USER_SATISFACTION_RATIO         MAX_USER_SATISFACTION_RATIO
-```
-
-For example, default.txt:
-```
-3000
-100000
-10000
-100 100
-80 80
-0.33333333333 0.33333333333 0.33333333333
-50 50
-10 10
-0.95 0.95
+MAX_INFO_INT
+PAGE_LENGTH
+PAGE_LENGTH_MIN
+PAGE_LENGTH_MAX
+PAGE_STD_DEV
+PAGE_STD_DEV_MIN
+PAGE_STD_DEV_MAX
+PAGE_CLICK_WEIGHT
+INFO_FOUND_WEIGHT
+TOPIC_SIMILARITY_WEIGHT
+USER_LENGTH
+USER_LENGTH_MIN
+USER_LENGTH_MAX
+USER_STD_DEV
+USER_STD_DEV_MIN
+USER_STD_DEV_MAX
+USER_SAT_PCT
+USER_SAT_PCT_MIN
+USER_SAT_PCT_MAX
 ```

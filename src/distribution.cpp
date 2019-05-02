@@ -10,16 +10,20 @@ using namespace std;
 random_device rd;
 default_random_engine random_gen(rd());
 
+// Generate integer uniformly distributed between min and max.
 int uniform_int(int min, int max) {
     uniform_int_distribution<> uniform(min, max);
     return uniform(random_gen);
 }
 
+// Generate real number uniformly distributed between min and max.
 double uniform_real(double min, double max) {
     uniform_real_distribution<> uniform(min, max);
     return uniform(random_gen);
 }
 
+// Generate normal distribution of given length and standard deviation
+// consisting of unique integers centered randomly between info_min and info_max.
 pair<int, set<int>> generate_info(int info_min, int info_max, int length, double std_dev) {
     // Create topic on uniform distribution between min and max.
     uniform_int_distribution<> uniform(info_min, info_max);

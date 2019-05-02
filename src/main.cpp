@@ -1,74 +1,13 @@
-#include "simulate.hpp"
-#include "PathQueue.hpp"
-#include <algorithm>
-#include <atomic>
-#include <fstream>
-#include <functional>
+#include "RunQueue.hpp"
+#include "SingleRun.hpp"
+#include "SweepRun.hpp"
 #include <iostream>
 #include <set>
 #include <thread>
-#include <vector>
 #include <experimental/filesystem>
-
-#ifdef HAS_NCURSES
-#include "NCursesDisplay.hpp"
-#else
-#include "ConsoleDisplay.hpp"
-#endif
 
 using namespace std;
 using namespace std::experimental::filesystem;
-
-void run_sim(path sim_path, shared_ptr<Display> display) {
-    SimParams params = read_params(sim_path);
-    vector<SimResult> run_results = simulate(params, display);
-
-    path output_path("outputs");
-    output_path /= sim_path.filename();
-    ofstream output(output_path);
-    for (SimResult result : run_results) {
-        output << result.list_depth << ", " << result.pages_read << "\n";
-    }
-}
-
-void run_sim_worker(PathQueue &path_queue, atomic_bool &done, shared_ptr<Display> display) {
-    while (!path_queue.empty()) {
-        path sim_path = path_queue.pop();
-        run_sim(sim_path, display);
-    }
-    done = true;
-}
-
-void run_sims(const set<path> &paths) {
-    create_directory("outputs");
-
-    #ifdef HAS_NCURSES
-    shared_ptr<Display> display = make_shared<NCursesDisplay>();
-    #else
-    shared_ptr<Display> display = make_shared<ConsoleDisplay>();
-    #endif
-
-    PathQueue path_queue;
-    for (path p : paths) {
-        display->initialize_name(p.string());
-        path_queue.push(p);
-    }
-
-    unsigned int num_threads = thread::hardware_concurrency();
-    vector<thread> threads;
-    vector<atomic_bool> done_flags(num_threads);
-    for (unsigned int i = 0; i < num_threads; i++) {
-        threads.emplace_back(run_sim_worker, ref(path_queue), ref(done_flags[i]), display);
-    }
-
-    while (count(done_flags.begin(), done_flags.end(), false) > 0) {
-        display->render();
-        display->handle_input();
-        this_thread::sleep_for(chrono::milliseconds(1));
-    }
-
-    for_each(threads.begin(), threads.end(), mem_fn(&thread::join));
-}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -96,7 +35,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    run_sims(paths);
+    create_directory("outputs");
+
+    RunQueue run_queue;
+    for (path p : paths) {
+        if (p.extension() == ".param") {
+            run_queue.push(make_shared<SingleRun>(p.stem(), p));
+        } else if (p.extension() == ".sweep") {
+            run_queue.push(make_shared<SweepRun>(p.stem(), p));
+        }
+    }
+
+    run_queue.execute();
 
     return 0;
 }
